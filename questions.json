@@ -1,0 +1,20 @@
+[
+  {
+    "question": "Qual tecnologia serve para estruturar o conteúdo de uma página web?",
+    "options": ["CSS", "HTML", "JavaScript", "SQL"],
+    "answer": 1,
+    "explanation": "HTML define a estrutura (títulos, parágrafos, links, etc.)."
+  },
+  {
+    "question": "Qual propriedade no CSS altera a cor do texto?",
+    "options": ["font-style", "color", "text-decoration", "background"],
+    "answer": 1,
+    "explanation": "A propriedade 'color' define a cor do texto."
+  },
+  {
+    "question": "Qual é o resultado de 2 + 2 * 2?",
+    "options": ["6", "8", "4", "10"],
+    "answer": 0,
+    "explanation": "Multiplicação vem antes: 2 + (2*2) = 6."
+  }
+]
