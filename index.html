@@ -3,57 +3,113 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quiz — Múltipla Escolha</title>
+  <title>Vale Quizz</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
+  <div class="bgGlow"></div>
+
+  <div class="app">
+    <header class="topbar">
       <div class="brand">
-        <h1>Quiz — Múltipla Escolha</h1>
-        <p>Escolha uma alternativa. Você vê o resultado e passa para a próxima.</p>
+        <div class="logo">VQ</div>
+        <div>
+          <h1>Vale Quizz</h1>
+          <p>De 1 a 8 jogadores • turnos • pontuação</p>
+        </div>
       </div>
 
-      <div class="pill" aria-live="polite">
-        <b>Progresso</b>
-        <span id="pillText">0/0</span>
+      <div class="topActions">
+        <button id="btnNewGame" class="ghost" type="button">Novo jogo</button>
+        <button id="btnRestart" type="button">Reiniciar</button>
       </div>
     </header>
 
-    <section class="card" role="application" aria-label="Quiz">
-      <div class="progress" aria-hidden="true">
-        <div id="bar"></div>
-      </div>
+    <main class="grid">
+      <aside class="panel">
+        <div class="panelHead">
+          <h2>Placar</h2>
+          <span id="pillRound" class="pill">—</span>
+        </div>
 
-      <div class="content" id="quizArea">
-        <div class="qline">
-          <div class="meta">
+        <div id="scoreList" class="scoreList"></div>
+
+        <div class="smallInfo">
+          <div class="kv">
+            <span>Turno:</span>
+            <b id="turnPlayer">—</b>
+          </div>
+          <div class="kv">
+            <span>Acertos:</span>
+            <b id="hitsInfo">—</b>
+          </div>
+        </div>
+      </aside>
+
+      <section class="card">
+        <div class="progress">
+          <div id="bar"></div>
+        </div>
+
+        <div id="gameArea" class="content">
+          <div class="qMeta">
             <small id="qIndex">Pergunta</small>
-            <h2 id="qText">Carregando…</h2>
+            <h2 id="qText">Carregando perguntas…</h2>
+          </div>
+
+          <div id="answers" class="answers"></div>
+
+          <div class="bottomRow">
+            <div id="feedback" class="feedback"></div>
+            <button id="btnNext" type="button" disabled>Próximo turno</button>
           </div>
         </div>
 
-        <div class="answers" id="answers"></div>
+        <div id="finalArea" class="final">
+          <h2>Fim de jogo 🏆</h2>
+          <p id="finalText"></p>
+          <div id="ranking" class="ranking"></div>
+
+          <div class="finalActions">
+            <button id="btnPlayAgain" type="button">Jogar novamente</button>
+            <button id="btnEditPlayers" class="ghost" type="button">Trocar jogadores</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Setup modal -->
+  <div id="setupModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h2>Configurar jogo</h2>
+        <p>Digite de <b>1 a 8 nomes</b>. Quem estiver vazio não entra.</p>
       </div>
 
-      <div class="result" id="resultArea">
-        <h2>Resultado</h2>
-        <p id="resultText"></p>
-        <div class="scoreBox">
-          <span class="chip" id="chipScore"></span>
-          <span class="chip" id="chipTime"></span>
-        </div>
+      <div class="inputs" id="playerInputs"></div>
+
+      <div class="row">
+        <label class="toggle">
+          <input id="chkShuffle" type="checkbox" checked />
+          <span>Embaralhar perguntas</span>
+        </label>
+
+        <label class="toggle">
+          <input id="chkShuffleOptions" type="checkbox" checked />
+          <span>Embaralhar alternativas</span>
+        </label>
       </div>
 
-      <div class="footer">
-        <div class="feedback" id="feedback"></div>
-        <div class="btnRow">
-          <button class="ghost" id="btnRestart" type="button">Reiniciar</button>
-          <button id="btnNext" type="button" disabled>Próxima</button>
-        </div>
+      <div class="modalActions">
+        <button id="btnStart" type="button">Começar</button>
       </div>
-    </section>
+
+      <div class="hint">
+        <b>Como alimentar?</b> Edite o arquivo <code>questions.json</code>.
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
