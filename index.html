@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz — Múltipla Escolha</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Quiz — Múltipla Escolha</h1>
+        <p>Escolha uma alternativa. Você vê o resultado e passa para a próxima.</p>
+      </div>
+
+      <div class="pill" aria-live="polite">
+        <b>Progresso</b>
+        <span id="pillText">0/0</span>
+      </div>
+    </header>
+
+    <section class="card" role="application" aria-label="Quiz">
+      <div class="progress" aria-hidden="true">
+        <div id="bar"></div>
+      </div>
+
+      <div class="content" id="quizArea">
+        <div class="qline">
+          <div class="meta">
+            <small id="qIndex">Pergunta</small>
+            <h2 id="qText">Carregando…</h2>
+          </div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+      </div>
+
+      <div class="result" id="resultArea">
+        <h2>Resultado</h2>
+        <p id="resultText"></p>
+        <div class="scoreBox">
+          <span class="chip" id="chipScore"></span>
+          <span class="chip" id="chipTime"></span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="feedback" id="feedback"></div>
+        <div class="btnRow">
+          <button class="ghost" id="btnRestart" type="button">Reiniciar</button>
+          <button id="btnNext" type="button" disabled>Próxima</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
