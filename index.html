@@ -1,113 +1,162 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vale Quizz</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Jogo do Trilhão</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-  <div class="bgGlow"></div>
+  <div class="bg"></div>
 
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <div class="logo">VQ</div>
-        <div>
-          <h1>Vale Quizz</h1>
-          <p>De 1 a 8 jogadores • turnos • pontuação</p>
+        <div class="logo">JT</div>
+        <div class="brandTxt">
+          <h1>Jogo do Trilhão</h1>
+          <p>Até 8 jogadores • um por vez • ajudas + 3 pulos • prêmio máximo: R$ 1 trilhão</p>
         </div>
       </div>
 
       <div class="topActions">
-        <button id="btnNewGame" class="ghost" type="button">Novo jogo</button>
-        <button id="btnRestart" type="button">Reiniciar</button>
+        <button id="btnConfig" class="ghost" type="button">Configurar</button>
+        <button id="btnResetAll" type="button">Reiniciar tudo</button>
       </div>
     </header>
 
-    <main class="grid">
-      <aside class="panel">
-        <div class="panelHead">
-          <h2>Placar</h2>
-          <span id="pillRound" class="pill">—</span>
-        </div>
-
-        <div id="scoreList" class="scoreList"></div>
-
-        <div class="smallInfo">
-          <div class="kv">
-            <span>Turno:</span>
-            <b id="turnPlayer">—</b>
+    <main class="layout">
+      <!-- ESQUERDA: placar + escada -->
+      <aside class="side">
+        <section class="panel">
+          <div class="panelHead">
+            <h2>Jogadores</h2>
+            <span class="pill" id="pillStatus">—</span>
           </div>
-          <div class="kv">
-            <span>Acertos:</span>
-            <b id="hitsInfo">—</b>
+          <div id="playersList" class="playersList"></div>
+        </section>
+
+        <section class="panel ladderPanel">
+          <div class="panelHead">
+            <h2>Escada do Trilhão</h2>
+            <span class="pill" id="pillRound">—</span>
           </div>
-        </div>
+          <div id="ladder" class="ladder"></div>
+          <div class="ladderNote">
+            <div class="kv"><span>Categoria:</span> <b id="catNow">—</b></div>
+            <div class="kv"><span>Dificuldade:</span> <b id="diffNow">—</b></div>
+          </div>
+        </section>
       </aside>
 
+      <!-- DIREITA: jogo -->
       <section class="card">
-        <div class="progress">
-          <div id="bar"></div>
+        <div class="topStrip">
+          <div class="stripLeft">
+            <span class="tag" id="tagPlayer">—</span>
+            <span class="tag" id="tagPrize">—</span>
+            <span class="tag" id="tagQ">—</span>
+          </div>
+
+          <div class="stripRight">
+            <button id="btnStop" class="ghost small" type="button" title="Parar e levar o prêmio atual">Parar</button>
+          </div>
         </div>
 
+        <div class="progress"><div id="bar"></div></div>
+
         <div id="gameArea" class="content">
-          <div class="qMeta">
-            <small id="qIndex">Pergunta</small>
+          <div class="questionBox">
+            <small id="qMeta">—</small>
             <h2 id="qText">Carregando perguntas…</h2>
           </div>
 
           <div id="answers" class="answers"></div>
 
+          <div class="helpRow">
+            <div class="helpTitle">Ajudas</div>
+            <div class="helpBtns">
+              <button id="helpCards" class="helpBtn" type="button">Cartas</button>
+              <button id="helpUni" class="helpBtn" type="button">Universitários</button>
+              <button id="helpAudience" class="helpBtn" type="button">Plateia</button>
+              <button id="helpSkip" class="helpBtn ghost" type="button">Pular (3)</button>
+            </div>
+          </div>
+
           <div class="bottomRow">
             <div id="feedback" class="feedback"></div>
-            <button id="btnNext" type="button" disabled>Próximo turno</button>
+            <button id="btnNextPlayer" type="button" disabled>Próximo jogador</button>
           </div>
         </div>
 
         <div id="finalArea" class="final">
-          <h2>Fim de jogo 🏆</h2>
+          <h2>Fim da rodada 🎉</h2>
           <p id="finalText"></p>
-          <div id="ranking" class="ranking"></div>
+          <div id="finalRanking" class="ranking"></div>
 
           <div class="finalActions">
-            <button id="btnPlayAgain" type="button">Jogar novamente</button>
-            <button id="btnEditPlayers" class="ghost" type="button">Trocar jogadores</button>
+            <button id="btnPlayAgain" type="button">Jogar novamente (mesmos jogadores)</button>
+            <button id="btnReconfig" class="ghost" type="button">Reconfigurar</button>
           </div>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Setup modal -->
-  <div id="setupModal" class="modal" aria-hidden="true">
+  <!-- MODAL CONFIG -->
+  <div id="modalConfig" class="modal" aria-hidden="true">
     <div class="modalCard">
       <div class="modalHead">
         <h2>Configurar jogo</h2>
-        <p>Digite de <b>1 a 8 nomes</b>. Quem estiver vazio não entra.</p>
+        <p>Digite de <b>1 a 8 jogadores</b> e escolha <b>categorias</b>.</p>
       </div>
 
-      <div class="inputs" id="playerInputs"></div>
+      <div class="grid2">
+        <div>
+          <h3>Jogadores</h3>
+          <div id="playerInputs" class="inputs"></div>
+        </div>
 
-      <div class="row">
-        <label class="toggle">
-          <input id="chkShuffle" type="checkbox" checked />
-          <span>Embaralhar perguntas</span>
-        </label>
+        <div>
+          <h3>Categorias</h3>
+          <div class="cats">
+            <label class="catOpt"><input type="checkbox" value="Variadas" checked> <span>Variadas (mistura)</span></label>
+            <label class="catOpt"><input type="checkbox" value="Bíblia"> <span>Bíblia</span></label>
+            <label class="catOpt"><input type="checkbox" value="Geografia"> <span>Geografia</span></label>
+            <label class="catOpt"><input type="checkbox" value="Matemática"> <span>Matemática</span></label>
+            <label class="catOpt"><input type="checkbox" value="História"> <span>História</span></label>
+            <label class="catOpt"><input type="checkbox" value="Química"> <span>Química</span></label>
+            <label class="catOpt"><input type="checkbox" value="Variedades"> <span>Variedades</span></label>
+          </div>
 
-        <label class="toggle">
-          <input id="chkShuffleOptions" type="checkbox" checked />
-          <span>Embaralhar alternativas</span>
-        </label>
+          <div class="tiny">
+            <b>Dica:</b> o jogo só usa categorias que existirem no <code>questions.json</code>.
+            Se você marcar “Geografia”, mas não tiver perguntas dessa categoria ainda, ele ignora.
+          </div>
+
+          <div class="toggles">
+            <label class="toggle"><input id="chkShuffleQ" type="checkbox" checked> <span>Embaralhar perguntas</span></label>
+            <label class="toggle"><input id="chkShuffleOpt" type="checkbox" checked> <span>Embaralhar alternativas</span></label>
+          </div>
+        </div>
       </div>
 
       <div class="modalActions">
         <button id="btnStart" type="button">Começar</button>
       </div>
+    </div>
+  </div>
 
-      <div class="hint">
-        <b>Como alimentar?</b> Edite o arquivo <code>questions.json</code>.
+  <!-- MODAL AJUDAS -->
+  <div id="modalHelp" class="modal" aria-hidden="true">
+    <div class="modalCard mini">
+      <div class="modalHead">
+        <h2 id="helpTitle">Ajuda</h2>
+        <p id="helpBody">—</p>
+      </div>
+      <div class="modalActions">
+        <button id="btnHelpClose" type="button">Fechar</button>
       </div>
     </div>
   </div>
