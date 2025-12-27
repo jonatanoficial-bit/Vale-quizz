@@ -2,7 +2,6 @@
   --bg1:#050b0a;
   --bg2:#081513;
   --card: rgba(255,255,255,.08);
-  --card2: rgba(255,255,255,.12);
   --text:#eafff8;
   --muted: rgba(234,255,248,.72);
 
@@ -116,10 +115,12 @@ body{
   border-radius:16px;
   border:1px solid rgba(255,255,255,.10);
   background: rgba(255,255,255,.06);
+  transition: transform .15s ease, border-color .2s ease, background .2s ease;
 }
 .pRow.active{
-  border-color: rgba(25,211,161,.45);
-  background: linear-gradient(135deg, rgba(25,211,161,.18), rgba(14,165,127,.10));
+  border-color: rgba(25,211,161,.55);
+  background: linear-gradient(135deg, rgba(25,211,161,.20), rgba(14,165,127,.10));
+  transform: translateY(-1px);
 }
 .pLeft{display:flex;align-items:center;gap:10px}
 .avatar{
@@ -150,12 +151,18 @@ body{
   font-size:13px;
 }
 .lStep.current{
-  border-color: rgba(25,211,161,.55);
-  background: rgba(25,211,161,.14);
+  border-color: rgba(25,211,161,.65);
+  background: rgba(25,211,161,.16);
+  animation: pulseGlow 1.3s ease-in-out infinite;
 }
 .lStep.safe{
   border-color: rgba(166,255,223,.40);
 }
+@keyframes pulseGlow{
+  0%,100%{ box-shadow: 0 0 0 rgba(25,211,161,0); }
+  50%{ box-shadow: 0 0 28px rgba(25,211,161,.18); }
+}
+
 .ladderNote{
   padding:14px 16px 16px;
   border-top:1px solid rgba(255,255,255,.10);
@@ -200,7 +207,7 @@ body{
   transition: width .35s ease;
 }
 
-.content{padding:22px;display:grid;gap:14px}
+.content{position:relative; padding:22px;display:grid;gap:14px}
 .questionBox small{color:var(--muted);font-size:13px}
 .questionBox h2{margin:6px 0 0;font-size: clamp(18px, 2.6vw, 26px);line-height:1.25}
 
@@ -211,7 +218,7 @@ body{
   border-radius: 16px;
   padding: 14px 14px;
   cursor:pointer;
-  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+  transition: transform .08s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
   display:flex;
   align-items:center;
   gap:12px;
@@ -233,17 +240,40 @@ body{
 .option .txt{font-size:15px;line-height:1.35}
 
 .option.correct{
-  border-color: rgba(53,208,127,.55);
-  background: rgba(53,208,127,.14);
+  border-color: rgba(53,208,127,.65);
+  background: rgba(53,208,127,.16);
+  animation: pop .22s ease-out;
 }
 .option.wrong{
-  border-color: rgba(255,92,122,.55);
-  background: rgba(255,92,122,.10);
+  border-color: rgba(255,92,122,.65);
+  background: rgba(255,92,122,.12);
+  animation: shake .32s ease-in-out;
 }
+@keyframes pop{
+  0%{ transform: scale(.98); }
+  100%{ transform: scale(1); }
+}
+@keyframes shake{
+  0%,100%{ transform: translateX(0); }
+  25%{ transform: translateX(-4px); }
+  50%{ transform: translateX(4px); }
+  75%{ transform: translateX(-3px); }
+}
+
 .option.disabled{
   opacity:.45;
   cursor:not-allowed;
   transform:none !important;
+}
+
+/* animação do 50:50 removendo */
+.option.removing{
+  animation: vanish .25s ease-in forwards;
+  transform-origin: left center;
+}
+@keyframes vanish{
+  0%{ opacity:1; transform: translateY(0) scale(1); max-height: 90px; padding:14px; margin:0; }
+  100%{ opacity:0; transform: translateY(-6px) scale(.98); max-height:0; padding:0; margin:0; border-width:0; }
 }
 
 .helpRow{
@@ -305,6 +335,34 @@ button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
   cursor:not-allowed;
 }
 
+/* overlay travamento */
+.lockOverlay{
+  position:absolute; inset:0;
+  display:none;
+  place-items:center;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+  z-index:10;
+}
+.lockOverlay.show{display:grid;}
+.lockCard{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.07);
+  box-shadow: var(--shadow);
+}
+.spinner{
+  width:22px;height:22px;border-radius:50%;
+  border:3px solid rgba(166,255,223,.35);
+  border-top-color: rgba(25,211,161,.95);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin{ to{ transform: rotate(360deg); } }
+.lockText{display:flex;flex-direction:column;gap:2px}
+.lockText span{color:var(--muted);font-size:12px}
+
 /* FINAL */
 .final{
   display:none;
@@ -349,6 +407,10 @@ button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
   overflow:hidden;
 }
 .modalCard.mini{width:min(560px, 100%)}
+.modalCard.glow{
+  border-color: rgba(25,211,161,.22);
+  box-shadow: 0 30px 90px rgba(0,0,0,.70), 0 0 60px rgba(25,211,161,.08);
+}
 .modalHead{padding:18px;border-bottom:1px solid rgba(255,255,255,.10)}
 .modalHead h2{margin:0}
 .modalHead p{margin:6px 0 0;color:var(--muted);font-size:13px}
@@ -445,4 +507,34 @@ code{
   display:flex;
   justify-content:flex-end;
   background: rgba(0,0,0,.10);
+}
+
+/* congrats box */
+.congratsBox{
+  padding:18px;
+  display:grid;
+  gap:10px;
+}
+.bigMoney{
+  font-size:32px;
+  font-weight:950;
+  letter-spacing:.2px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(25,211,161,.22);
+  background: linear-gradient(135deg, rgba(25,211,161,.16), rgba(166,255,223,.10));
+  animation: moneyPop .35s ease-out;
+}
+@keyframes moneyPop{
+  0%{ transform: translateY(6px); opacity:0; }
+  100%{ transform: translateY(0); opacity:1; }
+}
+.miniRow{display:flex;gap:10px;flex-wrap:wrap}
+.chip{
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(234,255,248,.92);
+  font-size:12px;
 }
