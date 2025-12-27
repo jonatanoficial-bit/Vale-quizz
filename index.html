@@ -16,7 +16,7 @@
         <div class="logo">JT</div>
         <div class="brandTxt">
           <h1>Jogo do Trilhão</h1>
-          <p>Até 8 jogadores • um por vez • ajudas + 3 pulos • prêmio máximo: R$ 1 trilhão</p>
+          <p>Até 8 jogadores • um por vez • 50:50 + universitários + plateia • 3 pulos • prêmio: até R$ 1 trilhão</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@
     </header>
 
     <main class="layout">
-      <!-- ESQUERDA: placar + escada -->
+      <!-- ESQUERDA -->
       <aside class="side">
         <section class="panel">
           <div class="panelHead">
@@ -50,7 +50,7 @@
         </section>
       </aside>
 
-      <!-- DIREITA: jogo -->
+      <!-- DIREITA -->
       <section class="card">
         <div class="topStrip">
           <div class="stripLeft">
@@ -60,6 +60,7 @@
           </div>
 
           <div class="stripRight">
+            <button id="btnSound" class="ghost small" type="button" title="Ativar/Desativar sons">Som: ON</button>
             <button id="btnStop" class="ghost small" type="button" title="Parar e levar o prêmio atual">Parar</button>
           </div>
         </div>
@@ -75,9 +76,9 @@
           <div id="answers" class="answers"></div>
 
           <div class="helpRow">
-            <div class="helpTitle">Ajudas</div>
+            <div class="helpTitle">Ajudas (Show)</div>
             <div class="helpBtns">
-              <button id="helpCards" class="helpBtn" type="button">Cartas</button>
+              <button id="help5050" class="helpBtn" type="button">50:50</button>
               <button id="helpUni" class="helpBtn" type="button">Universitários</button>
               <button id="helpAudience" class="helpBtn" type="button">Plateia</button>
               <button id="helpSkip" class="helpBtn ghost" type="button">Pular (3)</button>
@@ -87,6 +88,17 @@
           <div class="bottomRow">
             <div id="feedback" class="feedback"></div>
             <button id="btnNextPlayer" type="button" disabled>Próximo jogador</button>
+          </div>
+
+          <!-- overlay de travamento -->
+          <div id="lockOverlay" class="lockOverlay" aria-hidden="true">
+            <div class="lockCard">
+              <div class="spinner"></div>
+              <div class="lockText">
+                <b>Conferindo…</b>
+                <span>Segure a emoção 😄</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -157,6 +169,26 @@
       </div>
       <div class="modalActions">
         <button id="btnHelpClose" type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL "PARABÉNS" POR JOGADOR -->
+  <div id="modalCongrats" class="modal" aria-hidden="true">
+    <div class="modalCard mini glow">
+      <div class="modalHead">
+        <h2 id="congratsTitle">Parabéns!</h2>
+        <p id="congratsBody">—</p>
+      </div>
+      <div class="congratsBox">
+        <div class="bigMoney" id="congratsMoney">R$ 0</div>
+        <div class="miniRow">
+          <span class="chip" id="congratsStep">Etapa 0/16</span>
+          <span class="chip" id="congratsStatus">Finalizou</span>
+        </div>
+      </div>
+      <div class="modalActions">
+        <button id="btnCongratsNext" type="button">Continuar</button>
       </div>
     </div>
   </div>
