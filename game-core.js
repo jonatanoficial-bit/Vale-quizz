@@ -246,6 +246,17 @@
     return difficultyPoints + Math.min(50, step * 4) + Math.min(20, streak * 2);
   }
 
+  function achievementsFor({ correct = 0, incorrect = 0, bestStreak = 0, status = "", mode = "", champion = false } = {}) {
+    const attempts = Number(correct) + Number(incorrect);
+    const achievements = [];
+    if (status === "won") achievements.push({ id: "trillion", icon: "✦", label: "Um trilhão", description: "Chegou à última etapa e conquistou o prêmio máximo." });
+    if (bestStreak >= 5) achievements.push({ id: "streak-5", icon: "⚡", label: "Sequência de ouro", description: "Acertou cinco ou mais perguntas consecutivas." });
+    if (attempts >= 5 && Number(correct) / attempts >= .9) achievements.push({ id: "precision-90", icon: "◈", label: "Precisão máxima", description: "Terminou com pelo menos 90% de acerto em cinco ou mais respostas." });
+    if (mode === "duel" && champion) achievements.push({ id: "duel-champion", icon: "◆", label: "Campeão do duelo", description: "Terminou em primeiro no modo Duelo." });
+    if (mode === "party" && attempts > 0) achievements.push({ id: "party-player", icon: "✷", label: "Festa no estúdio", description: "Participou de uma partida no modo Família / Festa." });
+    return achievements;
+  }
+
   function encode(value) {
     return JSON.stringify(value, (_, item) => typeof item === "bigint" ? { __bigint: item.toString() } : item);
   }
@@ -269,6 +280,7 @@
     prizeForStep,
     guaranteedPrize,
     xpFor,
+    achievementsFor,
     encode,
     decode,
     comparable

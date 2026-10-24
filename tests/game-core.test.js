@@ -66,3 +66,9 @@ test("prêmios BigInt sobrevivem à serialização de save", () => {
   assert.equal(saved.prize, 1000000000000n);
   assert.equal(Core.guaranteedPrize(14), 1000000n);
 });
+
+test("conquistas dependem de resultados mensuráveis da partida", () => {
+  const achievements = Core.achievementsFor({ correct: 9, incorrect: 1, bestStreak: 6, status: "won", mode: "duel", champion: true });
+  assert.deepEqual(achievements.map((achievement) => achievement.id).sort(), ["duel-champion", "precision-90", "streak-5", "trillion"]);
+  assert.equal(Core.achievementsFor({ correct: 1, incorrect: 4, bestStreak: 1 }).length, 0);
+});
