@@ -14,6 +14,12 @@
 
   const SAFE_STEPS = new Set([5, 10, 15]);
 
+  const DIFFICULTY_PRESETS = {
+    easy: { label: "Fácil", description: "Muito fácil → intermediário" },
+    intermediate: { label: "Intermediário", description: "Fácil → difícil" },
+    challenge: { label: "Desafio", description: "Intermediário → difícil" }
+  };
+
   function text(value) {
     return String(value == null ? "" : value).trim();
   }
@@ -37,6 +43,7 @@
 
   function normalizeDifficulty(value) {
     const normalized = comparable(value);
+    if (normalized.includes("muito facil")) return "Muito Fácil";
     if (normalized.includes("fac")) return "Fácil";
     if (normalized.includes("med")) return "Médio";
     if (normalized.includes("dif")) return "Difícil";
@@ -121,7 +128,15 @@
   }
 
   function difficultyAccuracy(difficulty) {
-    return difficulty === "Fácil" ? 0.83 : difficulty === "Médio" ? 0.64 : 0.43;
+    return difficulty === "Muito Fácil" ? 0.9 : difficulty === "Fácil" ? 0.83 : difficulty === "Médio" ? 0.64 : 0.43;
+  }
+
+  function difficultyForStep(preset = "intermediate", step = 1) {
+    const boundedStep = Math.max(1, Math.min(16, Number(step) || 1));
+    const selected = DIFFICULTY_PRESETS[preset] ? preset : "intermediate";
+    if (selected === "easy") return boundedStep <= 5 ? "Muito Fácil" : boundedStep <= 11 ? "Fácil" : "Médio";
+    if (selected === "challenge") return boundedStep <= 5 ? "Médio" : "Difícil";
+    return boundedStep <= 5 ? "Fácil" : boundedStep <= 11 ? "Médio" : "Difícil";
   }
 
   function universityAdvice(question, random = Math.random) {
@@ -242,7 +257,7 @@
 
   function xpFor({ difficulty, step, correct, streak = 0 }) {
     if (!correct) return 0;
-    const difficultyPoints = difficulty === "Fácil" ? 16 : difficulty === "Médio" ? 28 : 45;
+    const difficultyPoints = difficulty === "Muito Fácil" ? 10 : difficulty === "Fácil" ? 16 : difficulty === "Médio" ? 28 : 45;
     return difficultyPoints + Math.min(50, step * 4) + Math.min(20, streak * 2);
   }
 
@@ -268,6 +283,7 @@
   return {
     LADDER,
     SAFE_STEPS,
+    DIFFICULTY_PRESETS,
     normalizeQuestion,
     validateQuestion,
     shuffle,
@@ -276,6 +292,7 @@
     cardElimination,
     universityAdvice,
     audienceVote,
+    difficultyForStep,
     QuestionRepository,
     prizeForStep,
     guaranteedPrize,

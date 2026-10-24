@@ -3,35 +3,38 @@
   const Core = window.ShowTrilhaoCore;
   const $ = (selector) => document.querySelector(selector);
   const dom = Object.fromEntries([
-    "homeScreen", "setupScreen", "gameScreen", "resultScreen", "btnHome", "btnNewGame", "btnContinue", "btnRanking", "btnSettings", "btnFullscreen", "modePicker", "playerName", "btnAddPlayer", "draftPlayers", "playerLimit", "categoryChoices", "btnToggleCategories", "shuffleOptions", "confirmAnswer", "repositoryStatus", "btnStartGame", "gamePlayers", "turnPill", "ladder", "ladderCurrent", "safePrize", "mobilePlayer", "mobileStep", "questionCard", "questionCategory", "questionValue", "questionLevel", "questionText", "answerGrid", "questionExplanation", "btnCards", "btnFifty", "btnUniversity", "btnAudience", "btnSkip", "skipLabel", "btnStop", "gameMessage", "resultTitle", "resultSummary", "resultHighlights", "resultRanking", "victoryArt", "btnRematch", "btnBackHome", "dialogBackdrop", "dialogKicker", "dialogTitle", "dialogBody", "dialogActions", "btnDialogClose", "toast", "importInput"
+    "homeScreen", "setupScreen", "gameScreen", "resultScreen", "btnHome", "btnNewGame", "btnContinue", "btnRanking", "btnSettings", "btnFullscreen", "modePicker", "difficultyPicker", "playerName", "btnAddPlayer", "avatarPicker", "draftPlayers", "playerLimit", "categoryChoices", "btnToggleCategories", "shuffleOptions", "confirmAnswer", "repositoryStatus", "btnStartGame", "gamePlayers", "turnPill", "ladder", "ladderCurrent", "safePrize", "mobilePlayer", "mobileStep", "questionCard", "questionCategory", "questionValue", "questionLevel", "questionText", "answerGrid", "questionExplanation", "btnCards", "btnFifty", "btnUniversity", "btnAudience", "btnSkip", "skipLabel", "btnStop", "gameMessage", "resultTitle", "resultSummary", "resultHighlights", "resultRanking", "victoryArt", "btnRematch", "btnBackHome", "dialogBackdrop", "dialogKicker", "dialogTitle", "dialogBody", "dialogActions", "btnDialogClose", "toast", "importInput"
   ].map((id) => [id, document.getElementById(id)]));
 
   const SAVE_KEY = "vale-games-show-trilhao-save-v2";
   const PROFILE_KEY = "vale-games-show-trilhao-profiles-v2";
   const SETTINGS_KEY = "vale-games-show-trilhao-settings-v2";
   const RECENT_KEY = "vale-games-show-trilhao-recent-v2";
-  const avatars = ["✦", "◆", "●", "▲", "✷", "◈", "✹", "⬟"];
+  const avatarOptions = Array.from({ length: 12 }, (_, index) => ({ id: `avatar-${index + 1}`, label: `Avatar ${index + 1}` }));
   let repository = null;
   let game = null;
-  let draftPlayers = [{ name: "Jogador 1" }];
+  let draftPlayers = [];
   let selectedMode = "classic";
+  let selectedDifficulty = "intermediate";
+  let selectedAvatar = avatarOptions[0].id;
   let toastTimer = null;
   let lastFocus = null;
   const settings = readJSON(SETTINGS_KEY, { voice: true, music: true, effects: true, reducedMotion: false, fontScale: 100 });
 
   const audio = {
-    intro: new Audio("assets/abertura-show-do-trilhao.mp3"),
+    intro: new Audio("assets/locucao-show-do-trilhao.mp3"),
     music: new Audio("assets/trilha-show-do-trilhao.mp3"),
     prepare() { this.intro.preload = "auto"; this.music.preload = "auto"; this.music.loop = true; this.music.volume = 0.34; this.intro.volume = 0.82; },
     startRound() {
       this.stop();
       if (!settings.voice) return this.startMusic();
       this.intro.currentTime = 0;
-      this.intro.onended = () => this.startMusic();
+      this.intro.onended = () => { this.intro.onended = null; this.startMusic(); };
+      this.intro.onerror = () => { this.intro.onerror = null; this.startMusic(); };
       this.intro.play().catch(() => this.startMusic());
     },
-    startMusic() { if (settings.music && !this.intro.paused) return; if (settings.music) this.music.play().catch(() => {}); },
-    stop() { this.intro.pause(); this.music.pause(); this.intro.currentTime = 0; this.music.currentTime = 0; },
+    startMusic() { if (settings.music && game && this.intro.paused) this.music.play().catch(() => {}); },
+    stop() { this.intro.onended = null; this.intro.onerror = null; this.intro.pause(); this.music.pause(); this.intro.currentTime = 0; this.music.currentTime = 0; },
     sync() { if (!settings.voice) this.intro.pause(); if (!settings.music) this.music.pause(); else if (game && !this.intro.paused) this.music.pause(); },
     effect(kind) {
       if (!settings.effects || !window.AudioContext) return;
@@ -47,6 +50,7 @@
   function storeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
   function node(tag, className, content) { const el = document.createElement(tag); if (className) el.className = className; if (content != null) el.textContent = content; return el; }
   function button(label, className, handler) { const el = node("button", className, label); el.type = "button"; el.addEventListener("click", handler); return el; }
+  function avatarNode(avatar, className = "avatar-portrait") { const portrait = node("span", `${className} avatar-portrait`); if (String(avatar || "").startsWith("avatar-")) portrait.dataset.avatar = avatar; else { portrait.classList.add("avatar-fallback"); portrait.textContent = avatar || "✦"; } portrait.setAttribute("aria-hidden", "true"); return portrait; }
   function fmt(value) { return `R$ ${BigInt(value || 0).toLocaleString("pt-BR")}`; }
   function delay(ms) { return new Promise((resolve) => setTimeout(resolve, settings.reducedMotion ? 0 : ms)); }
   function isPlaying() { return Boolean(game && ["transition", "question", "resolving", "reveal"].includes(game.phase)); }
@@ -65,7 +69,7 @@
 
   function saveGame() {
     if (!game || !repository) return;
-    const snapshot = { version: 2, savedAt: Date.now(), game, repository: { used: [...repository.used], recent: repository.recent, categoryUsage: [...repository.categoryUsage] } };
+    const snapshot = { version: 3, savedAt: Date.now(), game, repository: { used: [...repository.used], recent: repository.recent, categoryUsage: [...repository.categoryUsage] } };
     try { localStorage.setItem(SAVE_KEY, Core.encode(snapshot)); } catch { showToast("Não foi possível salvar a partida neste navegador."); }
     storeJSON(RECENT_KEY, repository.recent);
     refreshContinue();
@@ -82,8 +86,9 @@
     } catch { clearSavedGame(); return false; }
   }
   function migrateSavedGame(saved) {
-    if (saved.version === 2) return saved;
-    if (saved.version === 1 && saved.game) return { ...saved, version: 2, game: { ...saved.game, mode: saved.game.mode || "classic", phase: saved.game.phase || "question", removed: saved.game.removed || [] } };
+    if (saved.version === 3) return saved;
+    if (saved.version === 2 && saved.game) return { ...saved, version: 3, game: { ...saved.game, version: 3, startDifficulty: saved.game.startDifficulty || "intermediate", players: (saved.game.players || []).map((player, index) => ({ ...player, avatar: player.avatar || avatarOptions[index % avatarOptions.length].id })) } };
+    if (saved.version === 1 && saved.game) return { ...saved, version: 3, game: { ...saved.game, version: 3, mode: saved.game.mode || "classic", startDifficulty: "intermediate", phase: saved.game.phase || "question", removed: saved.game.removed || [], players: (saved.game.players || []).map((player, index) => ({ ...player, avatar: player.avatar || avatarOptions[index % avatarOptions.length].id })) } };
     return null;
   }
   function refreshContinue() { dom.btnContinue.classList.toggle("is-hidden", !localStorage.getItem(SAVE_KEY)); }
@@ -104,9 +109,13 @@
   }
   function levelFor(xp) { return Math.floor(Math.sqrt(xp / 100)) + 1; }
 
+  function renderAvatarPicker() {
+    dom.avatarPicker.replaceChildren();
+    avatarOptions.forEach((avatar) => { const option = button("", `avatar-choice${avatar.id === selectedAvatar ? " selected" : ""}`, () => { selectedAvatar = avatar.id; renderAvatarPicker(); }); option.setAttribute("role", "radio"); option.setAttribute("aria-checked", String(avatar.id === selectedAvatar)); option.setAttribute("aria-label", `Escolher ${avatar.label}`); option.append(avatarNode(avatar.id)); dom.avatarPicker.append(option); });
+  }
   function renderDraftPlayers() {
     dom.draftPlayers.replaceChildren();
-    draftPlayers.forEach((player, index) => { const chip = node("div", "player-chip"); chip.append(node("span", "", avatars[index]), node("span", "", player.name)); if (draftPlayers.length > 1) chip.append(button("×", "", () => { draftPlayers.splice(index, 1); renderDraftPlayers(); })); dom.draftPlayers.append(chip); });
+    draftPlayers.forEach((player, index) => { const chip = node("div", "player-chip"); chip.append(avatarNode(player.avatar, "avatar-chip"), node("span", "", player.name)); if (draftPlayers.length > 1) chip.append(button("×", "", () => { draftPlayers.splice(index, 1); renderDraftPlayers(); })); dom.draftPlayers.append(chip); });
   }
   function renderCategories() {
     dom.categoryChoices.replaceChildren(); if (!repository) return;
@@ -118,24 +127,26 @@
   function renderRepositoryStatus() { if (!repository) return; const report = repository.report(); dom.repositoryStatus.textContent = `${report.available.toLocaleString("pt-BR")} questões aprovadas e únicas disponíveis nesta versão; ${report.invalid} item(ns) inválido(s) foram bloqueados.`; }
 
   function newGame() {
-    const names = draftPlayers.map((person) => person.name.trim()).filter(Boolean).slice(0, 8);
+    const players = draftPlayers.map((person, index) => ({ name: person.name.trim(), avatar: person.avatar || avatarOptions[index % avatarOptions.length].id })).filter((person) => person.name).slice(0, 8);
     if (!repository?.questions.length) return showToast("O banco de perguntas ainda não está disponível.");
-    if (selectedMode === "duel" && names.length !== 2) return showToast("O modo Duelo precisa de exatamente dois participantes.");
-    if (selectedMode === "party" && names.length < 2) return showToast("O modo Família / Festa precisa de pelo menos dois participantes.");
-    if (!names.length) return showToast("Inclua pelo menos um participante.");
+    if (selectedMode === "duel" && players.length !== 2) return showToast("O modo Duelo precisa de exatamente dois participantes.");
+    if (selectedMode === "party" && players.length < 2) return showToast("O modo Família / Festa precisa de pelo menos dois participantes.");
+    if (!players.length) return showToast("Inclua pelo menos um participante.");
     repository.used.clear(); repository.categoryUsage.clear();
-    game = { version: 2, mode: selectedMode, phase: "transition", active: 0, startedAt: Date.now(), categories: checkedCategories(), shuffleOptions: dom.shuffleOptions.checked, confirmAnswer: dom.confirmAnswer.checked, turnCap: selectedMode === "classic" ? 16 : selectedMode === "duel" ? 10 : 5, current: null, removed: [], selected: null, players: names.map((name, index) => ({ id: `${Date.now()}-${index}`, name, avatar: avatars[index], money: 0n, step: 0, turns: 0, points: 0, status: "playing", correct: 0, incorrect: 0, streak: 0, bestStreak: 0, xp: 0, categoryHistory: [], lifelines: { cards: true, fifty: true, university: true, audience: true }, skipsLeft: 3 })) };
+    game = { version: 3, mode: selectedMode, startDifficulty: selectedDifficulty, phase: "transition", active: 0, startedAt: Date.now(), categories: checkedCategories(), shuffleOptions: dom.shuffleOptions.checked, confirmAnswer: dom.confirmAnswer.checked, turnCap: selectedMode === "classic" ? 16 : selectedMode === "duel" ? 10 : 5, current: null, removed: [], selected: null, players: players.map((player, index) => ({ id: `${Date.now()}-${index}`, name: player.name, avatar: player.avatar, money: 0n, step: 0, turns: 0, points: 0, status: "playing", correct: 0, incorrect: 0, streak: 0, bestStreak: 0, xp: 0, categoryHistory: [], lifelines: { cards: true, fifty: true, university: true, audience: true }, skipsLeft: 3 })) };
     setScreen("game"); audio.startRound(); nextQuestion("As luzes se acendem. Boa sorte!");
   }
   function activePlayer() { return game?.players[game.active] || null; }
   function progressFor(player) { return game.mode === "classic" ? player.step : player.turns; }
+  function progressionStepFor(player) { const turn = progressFor(player) + 1; return game.mode === "classic" ? turn : Math.max(1, Math.ceil(turn / game.turnCap * 16)); }
+  function questionDifficultyFor(player) { return Core.difficultyForStep(game.startDifficulty || "intermediate", progressionStepFor(player)); }
   function canContinue(player) { return game.mode === "classic" ? player.status === "playing" : player.status === "playing" && player.turns < game.turnCap; }
   function pickNextActive(from) { for (let offset = 1; offset <= game.players.length; offset += 1) { const index = (from + offset) % game.players.length; if (canContinue(game.players[index])) return index; } return -1; }
   function disableDuringLock() { return game?.phase !== "question"; }
 
   async function nextQuestion(message = "") {
     if (!game) return; const player = activePlayer(); if (!player || !canContinue(player)) return advanceTurn();
-    const ladderStep = Math.min(16, progressFor(player) + 1); const difficulty = Core.LADDER[ladderStep - 1].difficulty; const drawn = repository.draw({ difficulty, categories: game.categories });
+    const difficulty = questionDifficultyFor(player); const drawn = repository.draw({ difficulty, categories: game.categories });
     if (!drawn) return finishGame("O banco disponível foi concluído sem repetir questões.");
     game.current = game.shuffleOptions ? Core.shuffleOptions(drawn.question) : { ...drawn.question }; game.removed = []; game.selected = null; game.phase = "transition"; game.fallback = drawn.fallback; player.categoryHistory.push(game.current.category); dom.gameMessage.textContent = drawn.fallback ? `A categoria ou dificuldade solicitada foi esgotada; usamos uma questão equivalente disponível.` : message; renderGame(); saveGame();
     const snapshot = game.startedAt; await delay(460); if (!game || game.startedAt !== snapshot) return; game.phase = "question"; renderGame(); saveGame();
@@ -145,15 +156,15 @@
   }
   function renderGame() {
     if (!game) return; const player = activePlayer(); const question = game.current; const step = Math.min(16, progressFor(player) + 1); const prize = Core.prizeForStep(step);
-    dom.turnPill.textContent = `VEZ DE ${player.name.toUpperCase()}`; dom.mobilePlayer.textContent = `${player.avatar} ${player.name}`; dom.mobileStep.textContent = game.mode === "classic" ? `Etapa ${step}/16` : `Rodada ${Math.min(player.turns + 1, game.turnCap)}/${game.turnCap}`;
-    renderGamePlayers(); renderLadder(player, step); dom.questionCard.classList.toggle("entering", game.phase === "transition"); dom.questionCategory.textContent = question?.category || "Estúdio VALE GAMES"; dom.questionValue.textContent = game.mode === "classic" ? `VALE ${fmt(prize)}` : `${player.points} pontos`; dom.questionLevel.textContent = question ? `${question.difficulty} • ${game.mode === "classic" ? `Etapa ${step} de 16` : "rodada equilibrada"}` : "Preparando pergunta"; dom.questionText.textContent = question?.question || "Preparando a próxima pergunta…";
+    dom.turnPill.textContent = `VEZ DE ${player.name.toUpperCase()}`; dom.mobilePlayer.textContent = player.name; dom.mobileStep.textContent = game.mode === "classic" ? `Etapa ${step}/16` : `Rodada ${Math.min(player.turns + 1, game.turnCap)}/${game.turnCap}`;
+    renderGamePlayers(); renderLadder(player, step); dom.questionCard.classList.toggle("entering", game.phase === "transition"); dom.questionCategory.textContent = question?.category || "Estúdio VALE GAMES"; dom.questionValue.textContent = game.mode === "classic" ? `VALE ${fmt(prize)}` : `${player.points} pontos`; dom.questionLevel.textContent = question ? `${question.difficulty} • ${game.mode === "classic" ? `Etapa ${step} de 16` : `rodada ${Math.min(player.turns + 1, game.turnCap)} de ${game.turnCap}`}` : "Preparando pergunta"; dom.questionText.textContent = question?.question || "Preparando a próxima pergunta…";
     dom.questionExplanation.hidden = !game.explanation; dom.questionExplanation.textContent = game.explanation || ""; renderAnswers(question); renderLifelines(player); dom.ladderCurrent.textContent = `${step} / 16`; dom.safePrize.textContent = fmt(Core.guaranteedPrize(player.step));
   }
   function renderGamePlayers() {
-    dom.gamePlayers.replaceChildren(); game.players.forEach((player, index) => { const row = node("div", `game-player${index === game.active ? " active" : ""}`); const avatar = node("div", "mini-avatar", player.avatar); const identity = node("div"); identity.append(node("b", "", player.name), node("small", "", game.mode === "classic" ? `${player.status === "playing" ? `etapa ${player.step}/16` : player.status}` : `${player.points} pts • ${player.turns}/${game.turnCap}`)); const score = node("span", "money", game.mode === "classic" ? fmt(player.money) : `NV ${levelFor(player.xp)}`); row.append(avatar, identity, score); dom.gamePlayers.append(row); });
+    dom.gamePlayers.replaceChildren(); game.players.forEach((player, index) => { const row = node("div", `game-player${index === game.active ? " active" : ""}`); const avatar = node("div", "mini-avatar"); avatar.append(avatarNode(player.avatar, "avatar-stage")); const identity = node("div"); identity.append(node("b", "", player.name), node("small", "", game.mode === "classic" ? `${player.status === "playing" ? `etapa ${player.step}/16` : player.status}` : `${player.points} pts • ${player.turns}/${game.turnCap}`)); const score = node("span", "money", game.mode === "classic" ? fmt(player.money) : `NV ${levelFor(player.xp)}`); row.append(avatar, identity, score); dom.gamePlayers.append(row); });
   }
   function renderLadder(player, nextStep) {
-    dom.ladder.replaceChildren(); [...Core.LADDER].reverse().forEach((item) => { const line = node("div", "ladder-step"); if (item.step === nextStep) line.classList.add("current"); if (Core.SAFE_STEPS.has(item.step)) line.classList.add("safe"); line.append(node("span", "", `${item.step}. ${item.difficulty}`), node("b", "", fmt(item.prize))); dom.ladder.append(line); });
+    dom.ladder.replaceChildren(); [...Core.LADDER].reverse().forEach((item) => { const line = node("div", "ladder-step"); if (item.step === nextStep) line.classList.add("current"); if (Core.SAFE_STEPS.has(item.step)) line.classList.add("safe"); line.append(node("span", "", `${item.step}. ${Core.difficultyForStep(game.startDifficulty || "intermediate", item.step)}`), node("b", "", fmt(item.prize))); dom.ladder.append(line); });
   }
   function renderAnswers(question) {
     dom.answerGrid.replaceChildren(); if (!question) return;
@@ -205,7 +216,7 @@
     game = null;
   }
 
-  function showRanking() { const list = profiles().sort((a, b) => b.xp - a.xp || b.wins - a.wins || (BigInt(b.biggestPrize || 0) > BigInt(a.biggestPrize || 0) ? 1 : BigInt(b.biggestPrize || 0) < BigInt(a.biggestPrize || 0) ? -1 : 0)).slice(0, 20); const body = node("div", "help-grid"); if (!list.length) body.append(node("p", "", "Jogue uma partida para criar o primeiro perfil local.")); list.forEach((profile, index) => { const row = node("div", "help-person"); const score = node("div", "profile-achievements"); score.append(node("b", "", `NV ${levelFor(profile.xp)} • ${profile.xp} XP`)); (Array.isArray(profile.achievements) ? profile.achievements : []).slice(0, 3).forEach((achievement) => { const icon = node("span", "", achievement.icon || "✦"); icon.title = achievement.label || "Conquista"; score.append(icon); }); row.append(node("span", "", `${index + 1}. ${profile.avatar || "✦"} ${profile.name}`), score); body.append(row); }); showDialog({ kicker: "RANKING LOCAL", title: "Hall da fama", body, actions: [{ label: "Fechar", primary: true, handler: closeDialog }] }); }
+  function showRanking() { const list = profiles().sort((a, b) => b.xp - a.xp || b.wins - a.wins || (BigInt(b.biggestPrize || 0) > BigInt(a.biggestPrize || 0) ? 1 : BigInt(b.biggestPrize || 0) < BigInt(a.biggestPrize || 0) ? -1 : 0)).slice(0, 20); const body = node("div", "help-grid"); if (!list.length) body.append(node("p", "", "Jogue uma partida para criar o primeiro perfil local.")); list.forEach((profile, index) => { const row = node("div", "help-person"); const identity = node("span", "profile-identity"); identity.append(node("span", "", `${index + 1}.`), avatarNode(profile.avatar, "avatar-ranking"), node("span", "", profile.name)); const score = node("div", "profile-achievements"); score.append(node("b", "", `NV ${levelFor(profile.xp)} • ${profile.xp} XP`)); (Array.isArray(profile.achievements) ? profile.achievements : []).slice(0, 3).forEach((achievement) => { const icon = node("span", "", achievement.icon || "✦"); icon.title = achievement.label || "Conquista"; score.append(icon); }); row.append(identity, score); body.append(row); }); showDialog({ kicker: "RANKING LOCAL", title: "Hall da fama", body, actions: [{ label: "Fechar", primary: true, handler: closeDialog }] }); }
   function showSettings() {
     const box = node("div", "settings-grid"); const audioGroup = node("section", "setting-group"); audioGroup.append(node("h3", "", "Áudio")); [["voice", "Locução de abertura"], ["music", "Música de fundo"], ["effects", "Efeitos do jogo"]].forEach(([key, label]) => { const line = node("label"); const input = document.createElement("input"); input.type = "checkbox"; input.checked = settings[key]; input.addEventListener("change", () => { settings[key] = input.checked; applySettings(); }); line.append(node("span", "", label), input); audioGroup.append(line); }); box.append(audioGroup);
     const access = node("section", "setting-group"); access.append(node("h3", "", "Acessibilidade")); const motion = node("label"); const motionInput = document.createElement("input"); motionInput.type = "checkbox"; motionInput.checked = settings.reducedMotion; motionInput.addEventListener("change", () => { settings.reducedMotion = motionInput.checked; applySettings(); }); motion.append(node("span", "", "Reduzir animações"), motionInput); const font = node("label"); const range = document.createElement("input"); range.type = "range"; range.min = "85"; range.max = "120"; range.value = settings.fontScale; range.addEventListener("input", () => { settings.fontScale = range.value; applySettings(); }); font.append(node("span", "", "Tamanho do texto"), range); access.append(motion, font); box.append(access);
@@ -215,13 +226,14 @@
   function exportProfiles() { const blob = new Blob([JSON.stringify({ version: 2, profiles: profiles() }, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "vale-games-ranking.json"; link.click(); URL.revokeObjectURL(link.href); }
   function importProfiles(file) { const reader = new FileReader(); reader.onload = () => { try { const incoming = JSON.parse(String(reader.result)); if (!Array.isArray(incoming.profiles)) throw new Error(); storeJSON(PROFILE_KEY, incoming.profiles); showToast("Ranking importado com sucesso."); } catch { showToast("Arquivo de ranking inválido."); } }; reader.readAsText(file); }
 
-  async function loadQuestions() { try { const response = await fetch("questions.json", { cache: "force-cache" }); if (!response.ok) throw new Error("Falha de rede"); repository = new Core.QuestionRepository(await response.json(), readJSON(RECENT_KEY, [])); renderCategories(); renderRepositoryStatus(); refreshContinue(); } catch { dom.repositoryStatus.textContent = "Não foi possível carregar o banco de perguntas. Verifique sua conexão ou os arquivos do jogo."; showToast("Falha ao carregar questions.json."); } }
+  async function loadQuestions() { try { const response = await fetch("questions.json", { cache: "force-cache" }); if (!response.ok) throw new Error("Falha de rede"); const base = await response.json(); const procedural = Array.isArray(window.ShowTrilhaoProceduralQuestions) ? window.ShowTrilhaoProceduralQuestions : []; repository = new Core.QuestionRepository([...base, ...procedural], readJSON(RECENT_KEY, [])); renderCategories(); renderRepositoryStatus(); refreshContinue(); } catch { dom.repositoryStatus.textContent = "Não foi possível carregar o banco de perguntas. Verifique sua conexão ou os arquivos do jogo."; showToast("Falha ao carregar questions.json."); } }
   function changeMode(mode) { selectedMode = mode; [...dom.modePicker.querySelectorAll("button")].forEach((button) => { const selected = button.dataset.mode === mode; button.classList.toggle("selected", selected); button.setAttribute("aria-checked", String(selected)); }); dom.playerLimit.textContent = mode === "duel" ? "exatamente 2" : mode === "party" ? "2 a 8" : "1 a 8"; }
+  function changeDifficulty(difficulty) { selectedDifficulty = Core.DIFFICULTY_PRESETS[difficulty] ? difficulty : "intermediate"; [...dom.difficultyPicker.querySelectorAll("button")].forEach((button) => { const selected = button.dataset.difficulty === selectedDifficulty; button.classList.toggle("selected", selected); button.setAttribute("aria-checked", String(selected)); }); }
   function openSetup() { setScreen("setup"); dom.playerName.focus(); }
 
   dom.btnNewGame.addEventListener("click", openSetup); dom.btnHome.addEventListener("click", () => { if (isPlaying()) saveGame(); audio.stop(); setScreen("home"); }); dom.btnBackHome.addEventListener("click", () => setScreen("home")); dom.btnContinue.addEventListener("click", () => { if (!restoreGame()) showToast("Não foi possível restaurar esta partida."); }); dom.btnRanking.addEventListener("click", showRanking); dom.btnSettings.addEventListener("click", showSettings); dom.btnDialogClose.addEventListener("click", closeDialog); dom.dialogBackdrop.addEventListener("click", (event) => { if (event.target === dom.dialogBackdrop) closeDialog(); }); document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !dom.dialogBackdrop.hidden) closeDialog(); });
-  dom.modePicker.addEventListener("click", (event) => { const button = event.target.closest("[data-mode]"); if (button) changeMode(button.dataset.mode); }); dom.btnAddPlayer.addEventListener("click", () => { const name = dom.playerName.value.trim(); if (!name) return dom.playerName.focus(); if (draftPlayers.length >= 8) return showToast("O limite é de oito participantes."); if (draftPlayers.some((player) => Core.comparable(player.name) === Core.comparable(name))) return showToast("Use nomes diferentes para os participantes."); draftPlayers.push({ name }); dom.playerName.value = ""; renderDraftPlayers(); }); dom.playerName.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); dom.btnAddPlayer.click(); } }); dom.btnToggleCategories.addEventListener("click", () => { const inputs = [...dom.categoryChoices.querySelectorAll("input")]; const all = inputs.every((input) => input.checked); inputs.forEach((input) => input.checked = !all); dom.btnToggleCategories.textContent = all ? "Todas" : "Nenhuma"; }); dom.btnStartGame.addEventListener("click", newGame); dom.btnRematch.addEventListener("click", () => { draftPlayers = draftPlayers.length ? draftPlayers : [{ name: "Jogador 1" }]; renderDraftPlayers(); openSetup(); });
+  dom.modePicker.addEventListener("click", (event) => { const button = event.target.closest("[data-mode]"); if (button) changeMode(button.dataset.mode); }); dom.difficultyPicker.addEventListener("click", (event) => { const button = event.target.closest("[data-difficulty]"); if (button) changeDifficulty(button.dataset.difficulty); }); dom.btnAddPlayer.addEventListener("click", () => { const name = dom.playerName.value.trim(); if (!name) return dom.playerName.focus(); if (draftPlayers.length >= 8) return showToast("O limite é de oito participantes."); if (draftPlayers.some((player) => Core.comparable(player.name) === Core.comparable(name))) return showToast("Use nomes diferentes para os participantes."); draftPlayers.push({ name, avatar: selectedAvatar }); dom.playerName.value = ""; renderDraftPlayers(); }); dom.playerName.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); dom.btnAddPlayer.click(); } }); dom.btnToggleCategories.addEventListener("click", () => { const inputs = [...dom.categoryChoices.querySelectorAll("input")]; const all = inputs.every((input) => input.checked); inputs.forEach((input) => input.checked = !all); dom.btnToggleCategories.textContent = all ? "Todas" : "Nenhuma"; }); dom.btnStartGame.addEventListener("click", newGame); dom.btnRematch.addEventListener("click", () => { draftPlayers = draftPlayers.length ? draftPlayers : [{ name: "Jogador 1", avatar: avatarOptions[0].id }]; renderDraftPlayers(); openSetup(); });
   dom.btnFifty.addEventListener("click", useFifty); dom.btnCards.addEventListener("click", useCards); dom.btnUniversity.addEventListener("click", useUniversity); dom.btnAudience.addEventListener("click", useAudience); dom.btnSkip.addEventListener("click", useSkip); dom.btnStop.addEventListener("click", stopPlaying); dom.btnFullscreen.addEventListener("click", () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }); dom.importInput.addEventListener("change", () => { if (dom.importInput.files?.[0]) importProfiles(dom.importInput.files[0]); dom.importInput.value = ""; });
   window.addEventListener("beforeunload", () => { if (isPlaying()) saveGame(); });
-  renderDraftPlayers(); applySettings(); loadQuestions();
+  renderAvatarPicker(); renderDraftPlayers(); applySettings(); loadQuestions();
 })();

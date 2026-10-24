@@ -1,7 +1,9 @@
 const fs = require("node:fs");
 const Core = require("../game-core.js");
 
-const questions = JSON.parse(fs.readFileSync("questions.json", "utf8"));
+const baseQuestions = JSON.parse(fs.readFileSync("questions.json", "utf8"));
+const proceduralQuestions = require("../questions-procedurais.js");
+const questions = [...baseQuestions, ...proceduralQuestions];
 const repository = new Core.QuestionRepository(questions);
 const count = (items, key) => Object.fromEntries([...items.reduce((map, item) => {
   const value = key(item) || "Não informado";

@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Core = require("../game-core.js");
+const proceduralQuestions = require("../questions-procedurais.js");
 
 const question = (id, category = "Geografia", difficulty = "Fácil") => ({
   id, category, difficulty, question: `Pergunta ${id}`, options: ["A", "B", "C", "D"], answer: 2, explanation: "Explicação aprovada.", editorialStatus: "approved"
@@ -71,4 +72,21 @@ test("conquistas dependem de resultados mensuráveis da partida", () => {
   const achievements = Core.achievementsFor({ correct: 9, incorrect: 1, bestStreak: 6, status: "won", mode: "duel", champion: true });
   assert.deepEqual(achievements.map((achievement) => achievement.id).sort(), ["duel-champion", "precision-90", "streak-5", "trillion"]);
   assert.equal(Core.achievementsFor({ correct: 1, incorrect: 4, bestStreak: 1 }).length, 0);
+});
+
+test("a progressão respeita a dificuldade inicial escolhida", () => {
+  assert.equal(Core.difficultyForStep("easy", 1), "Muito Fácil");
+  assert.equal(Core.difficultyForStep("easy", 16), "Médio");
+  assert.equal(Core.difficultyForStep("intermediate", 1), "Fácil");
+  assert.equal(Core.difficultyForStep("intermediate", 9), "Médio");
+  assert.equal(Core.difficultyForStep("intermediate", 16), "Difícil");
+  assert.equal(Core.difficultyForStep("challenge", 1), "Médio");
+  assert.equal(Core.difficultyForStep("challenge", 16), "Difícil");
+});
+
+test("o banco procedural amplia o jogo com perguntas válidas em todos os níveis", () => {
+  const repository = new Core.QuestionRepository(proceduralQuestions);
+  assert.ok(repository.questions.length >= 1800);
+  assert.equal(repository.invalid.length, 0);
+  assert.deepEqual([...new Set(repository.questions.map((question) => question.difficulty))].sort(), ["Difícil", "Fácil", "Muito Fácil", "Médio"]);
 });
