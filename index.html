@@ -1,198 +1,43 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Jogo do Trilhão</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07132b">
+  <meta name="description" content="SHOW DO TRILHÃO, um game show virtual da VALE GAMES.">
+  <title>SHOW DO TRILHÃO — VALE GAMES</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <div class="bg"></div>
-
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">JT</div>
-        <div class="brandTxt">
-          <h1>Jogo do Trilhão</h1>
-          <p>Até 8 jogadores • um por vez • 50:50 + universitários + plateia • 3 pulos • prêmio: até R$ 1 trilhão</p>
-        </div>
-      </div>
-
-      <div class="topActions">
-        <button id="btnConfig" class="ghost" type="button">Configurar</button>
-        <button id="btnResetAll" type="button">Reiniciar tudo</button>
-      </div>
+  <div class="studio-background" aria-hidden="true"><span class="beam beam-one"></span><span class="beam beam-two"></span><span class="beam beam-three"></span><span class="horizon"></span><span class="floor-grid"></span></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <button id="btnHome" class="brand" type="button" aria-label="Voltar ao início"><span class="brand-mark">VG</span><span><strong>SHOW DO TRILHÃO</strong><small>VALE GAMES</small></span></button>
+      <div class="header-actions"><button id="btnFullscreen" class="icon-button" type="button" title="Tela cheia" aria-label="Tela cheia">⛶</button><button id="btnSettings" class="secondary-button compact" type="button">Configurações</button></div>
     </header>
-
-    <main class="layout">
-      <!-- ESQUERDA -->
-      <aside class="side">
-        <section class="panel">
-          <div class="panelHead">
-            <h2>Jogadores</h2>
-            <span class="pill" id="pillStatus">—</span>
-          </div>
-          <div id="playersList" class="playersList"></div>
-        </section>
-
-        <section class="panel ladderPanel">
-          <div class="panelHead">
-            <h2>Escada do Trilhão</h2>
-            <span class="pill" id="pillRound">—</span>
-          </div>
-          <div id="ladder" class="ladder"></div>
-          <div class="ladderNote">
-            <div class="kv"><span>Categoria:</span> <b id="catNow">—</b></div>
-            <div class="kv"><span>Dificuldade:</span> <b id="diffNow">—</b></div>
-          </div>
-        </section>
-      </aside>
-
-      <!-- DIREITA -->
-      <section class="card">
-        <div class="topStrip">
-          <div class="stripLeft">
-            <span class="tag" id="tagPlayer">—</span>
-            <span class="tag" id="tagPrize">—</span>
-            <span class="tag" id="tagQ">—</span>
-          </div>
-
-          <div class="stripRight">
-            <button id="btnSound" class="ghost small" type="button" title="Ativar/Desativar sons">Som: ON</button>
-            <button id="btnStop" class="ghost small" type="button" title="Parar e levar o prêmio atual">Parar</button>
-          </div>
-        </div>
-
-        <div class="progress"><div id="bar"></div></div>
-
-        <div id="gameArea" class="content">
-          <div class="questionBox">
-            <small id="qMeta">—</small>
-            <h2 id="qText">Carregando perguntas…</h2>
-          </div>
-
-          <div id="answers" class="answers"></div>
-
-          <div class="helpRow">
-            <div class="helpTitle">Ajudas (Show)</div>
-            <div class="helpBtns">
-              <button id="help5050" class="helpBtn" type="button">50:50</button>
-              <button id="helpUni" class="helpBtn" type="button">Universitários</button>
-              <button id="helpAudience" class="helpBtn" type="button">Plateia</button>
-              <button id="helpSkip" class="helpBtn ghost" type="button">Pular (3)</button>
-            </div>
-          </div>
-
-          <div class="bottomRow">
-            <div id="feedback" class="feedback"></div>
-            <button id="btnNextPlayer" type="button" disabled>Próximo jogador</button>
-          </div>
-
-          <!-- overlay de travamento -->
-          <div id="lockOverlay" class="lockOverlay" aria-hidden="true">
-            <div class="lockCard">
-              <div class="spinner"></div>
-              <div class="lockText">
-                <b>Conferindo…</b>
-                <span>Segure a emoção 😄</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="finalArea" class="final">
-          <h2>Fim da rodada 🎉</h2>
-          <p id="finalText"></p>
-          <div id="finalRanking" class="ranking"></div>
-
-          <div class="finalActions">
-            <button id="btnPlayAgain" type="button">Jogar novamente (mesmos jogadores)</button>
-            <button id="btnReconfig" class="ghost" type="button">Reconfigurar</button>
-          </div>
-        </div>
+    <main>
+      <section id="homeScreen" class="screen home-screen" aria-labelledby="homeTitle">
+        <div class="hero-copy"><p class="eyebrow">UM GAME SHOW ORIGINAL</p><h1 id="homeTitle">Chegou a hora de<br><em>valer um trilhão.</em></h1><p class="hero-description">Perguntas, estratégia e aquele silêncio antes da resposta. Uma experiência VALE GAMES feita para jogar sozinho, em duelo ou com a família.</p><div class="hero-actions"><button id="btnNewGame" class="primary-button large" type="button">JOGAR AGORA <span aria-hidden="true">→</span></button><button id="btnContinue" class="secondary-button large is-hidden" type="button">CONTINUAR PARTIDA</button></div><div class="hero-links"><button id="btnRanking" class="text-button" type="button">Ranking local</button><span aria-hidden="true">•</span><span>Até 8 participantes</span><span aria-hidden="true">•</span><span>Jogue offline depois do carregamento</span></div></div>
+        <div class="hero-stage" aria-hidden="true"><div class="trillion-emblem"><span>R$</span><strong>1</strong><small>TRILHÃO</small></div><div class="stage-ring ring-one"></div><div class="stage-ring ring-two"></div><div class="stage-podium"></div></div>
       </section>
+      <section id="setupScreen" class="screen setup-screen is-hidden" aria-labelledby="setupTitle">
+        <div class="section-heading"><p class="eyebrow">NOVA PARTIDA</p><h1 id="setupTitle">Monte o seu programa.</h1><p>Escolha o formato, cadastre quem vai jogar e defina as categorias.</p></div>
+        <div class="setup-layout">
+          <section class="setup-card"><h2>Modo de jogo</h2><div id="modePicker" class="mode-picker" role="radiogroup" aria-label="Modo de jogo"><button class="mode-option selected" data-mode="classic" type="button" role="radio" aria-checked="true"><b>Clássico</b><span>16 etapas, ajudas e a decisão de parar.</span></button><button class="mode-option" data-mode="duel" type="button" role="radio" aria-checked="false"><b>Duelo</b><span>Dois participantes, rodadas equilibradas.</span></button><button class="mode-option" data-mode="party" type="button" role="radio" aria-checked="false"><b>Família / Festa</b><span>De 2 a 8 pessoas, partidas rápidas.</span></button></div></section>
+          <section class="setup-card"><div class="card-heading"><h2>Participantes</h2><span id="playerLimit" class="tiny-pill">1 a 8</span></div><div class="add-player-row"><label class="sr-only" for="playerName">Nome do participante</label><input id="playerName" maxlength="18" autocomplete="off" placeholder="Nome do participante"><button id="btnAddPlayer" class="secondary-button" type="button">Adicionar</button></div><div id="draftPlayers" class="draft-players" aria-live="polite"></div></section>
+          <section class="setup-card categories-card"><div class="card-heading"><h2>Categorias</h2><button id="btnToggleCategories" class="text-button" type="button">Todas</button></div><p class="field-hint">A distribuição tenta alternar categorias e dificuldade. O jogo só usará questões aprovadas.</p><div id="categoryChoices" class="category-choices"></div></section>
+          <section class="setup-card preferences-card"><h2>Preferências da partida</h2><label class="check-row"><input id="shuffleOptions" type="checkbox" checked><span>Embaralhar alternativas</span></label><label class="check-row"><input id="confirmAnswer" type="checkbox"><span>Pedir confirmação antes de responder</span></label><p id="repositoryStatus" class="field-hint" aria-live="polite">Carregando banco de questões…</p></section>
+        </div><div class="setup-footer"><button id="btnStartGame" class="primary-button large" type="button">ABRIR O ESTÚDIO <span aria-hidden="true">→</span></button></div>
+      </section>
+      <section id="gameScreen" class="screen game-screen is-hidden" aria-label="Partida em andamento">
+        <aside class="game-side"><section class="glass-panel participants-panel"><div class="panel-heading"><span>NO PALCO</span><span id="turnPill" class="tiny-pill">—</span></div><div id="gamePlayers" class="game-players"></div></section><details class="glass-panel ladder-panel" open><summary><span>ESCADA DO TRILHÃO</span><span id="ladderCurrent" class="tiny-pill">1 / 16</span></summary><div id="ladder" class="ladder"></div><div class="ladder-foot"><span>Garantido</span><b id="safePrize">R$ 0</b></div></details></aside>
+        <section class="game-stage-wrap"><div class="mobile-match-meta"><span id="mobilePlayer">—</span><span id="mobileStep">—</span></div><section id="questionCard" class="question-card" aria-live="polite"><div class="question-topline"><span id="questionCategory" class="category-label">—</span><span id="questionValue" class="question-value">—</span></div><p id="questionLevel" class="question-level">Preparando o estúdio</p><h1 id="questionText">Carregando perguntas aprovadas…</h1><div id="answerGrid" class="answer-grid" aria-label="Alternativas"></div><p id="questionExplanation" class="explanation" hidden></p></section><section class="controls-deck" aria-label="Controles da partida"><div class="lifelines"><span class="deck-label">AJUDAS</span><button id="btnCards" class="lifeline-button" type="button"><i>♠</i><span>Cartas</span></button><button id="btnFifty" class="lifeline-button" type="button"><i>½</i><span>50:50</span></button><button id="btnUniversity" class="lifeline-button" type="button"><i>◈</i><span>Universitários</span></button><button id="btnAudience" class="lifeline-button" type="button"><i>▥</i><span>Plateia</span></button><button id="btnSkip" class="lifeline-button" type="button"><i>↷</i><span id="skipLabel">Pular 3</span></button></div><button id="btnStop" class="stop-button" type="button">PARAR E LEVAR</button></section><p id="gameMessage" class="game-message" aria-live="polite"></p></section>
+      </section>
+      <section id="resultScreen" class="screen result-screen is-hidden" aria-labelledby="resultTitle"><p class="eyebrow">FIM DE PARTIDA</p><h1 id="resultTitle">O estúdio aplaude.</h1><p id="resultSummary" class="result-summary"></p><div id="resultRanking" class="result-ranking"></div><div class="result-actions"><button id="btnRematch" class="primary-button large" type="button">REVANCHE</button><button id="btnBackHome" class="secondary-button large" type="button">INÍCIO</button></div></section>
     </main>
   </div>
-
-  <!-- MODAL CONFIG -->
-  <div id="modalConfig" class="modal" aria-hidden="true">
-    <div class="modalCard">
-      <div class="modalHead">
-        <h2>Configurar jogo</h2>
-        <p>Digite de <b>1 a 8 jogadores</b> e escolha <b>categorias</b>.</p>
-      </div>
-
-      <div class="grid2">
-        <div>
-          <h3>Jogadores</h3>
-          <div id="playerInputs" class="inputs"></div>
-        </div>
-
-        <div>
-          <h3>Categorias</h3>
-          <div class="cats">
-            <label class="catOpt"><input type="checkbox" value="Variadas" checked> <span>Variadas (mistura)</span></label>
-            <label class="catOpt"><input type="checkbox" value="Bíblia"> <span>Bíblia</span></label>
-            <label class="catOpt"><input type="checkbox" value="Geografia"> <span>Geografia</span></label>
-            <label class="catOpt"><input type="checkbox" value="Matemática"> <span>Matemática</span></label>
-            <label class="catOpt"><input type="checkbox" value="História"> <span>História</span></label>
-            <label class="catOpt"><input type="checkbox" value="Química"> <span>Química</span></label>
-            <label class="catOpt"><input type="checkbox" value="Variedades"> <span>Variedades</span></label>
-          </div>
-
-          <div class="tiny">
-            <b>Dica:</b> o jogo só usa categorias que existirem no <code>questions.json</code>.
-            Se você marcar “Geografia”, mas não tiver perguntas dessa categoria ainda, ele ignora.
-          </div>
-
-          <div class="toggles">
-            <label class="toggle"><input id="chkShuffleQ" type="checkbox" checked> <span>Embaralhar perguntas</span></label>
-            <label class="toggle"><input id="chkShuffleOpt" type="checkbox" checked> <span>Embaralhar alternativas</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="modalActions">
-        <button id="btnStart" type="button">Começar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL AJUDAS -->
-  <div id="modalHelp" class="modal" aria-hidden="true">
-    <div class="modalCard mini">
-      <div class="modalHead">
-        <h2 id="helpTitle">Ajuda</h2>
-        <p id="helpBody">—</p>
-      </div>
-      <div class="modalActions">
-        <button id="btnHelpClose" type="button">Fechar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL "PARABÉNS" POR JOGADOR -->
-  <div id="modalCongrats" class="modal" aria-hidden="true">
-    <div class="modalCard mini glow">
-      <div class="modalHead">
-        <h2 id="congratsTitle">Parabéns!</h2>
-        <p id="congratsBody">—</p>
-      </div>
-      <div class="congratsBox">
-        <div class="bigMoney" id="congratsMoney">R$ 0</div>
-        <div class="miniRow">
-          <span class="chip" id="congratsStep">Etapa 0/16</span>
-          <span class="chip" id="congratsStatus">Finalizou</span>
-        </div>
-      </div>
-      <div class="modalActions">
-        <button id="btnCongratsNext" type="button">Continuar</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+  <div id="dialogBackdrop" class="dialog-backdrop" hidden><section id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><button id="btnDialogClose" class="dialog-close" type="button" aria-label="Fechar">×</button><p id="dialogKicker" class="eyebrow"></p><h2 id="dialogTitle"></h2><div id="dialogBody" class="dialog-body"></div><div id="dialogActions" class="dialog-actions"></div></section></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div><input id="importInput" type="file" accept="application/json" hidden>
+  <script src="game-core.js"></script><script src="script.js"></script>
 </body>
 </html>
